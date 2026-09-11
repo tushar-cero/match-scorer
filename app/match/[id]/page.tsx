@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useMatchStore } from "@/stores/match-store";
 import { useTournamentStore } from "@/stores/tournament-store";
 import { getSportById } from "@/config/sports";
+import { LoadingState } from "@/components/LoadingState";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import {
   PageShell,
   PageHeader,
@@ -18,50 +20,40 @@ import {
 export default function MatchPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { currentMatch, loadMatch, setScoringMode } = useMatchStore();
+  const { currentMatch, loadMatch, setScoringMode, loading, error } = useMatchStore();
   const { completeMatch, currentTournament } = useTournamentStore();
 
   useEffect(() => {
     loadMatch(id);
-  }, [id]);
+  }, [id, loadMatch]);
 
-  if (currentMatch?.id !== id) {
-    return (
-      <PageShell>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "100vh",
-            color: "var(--ink-4)",
-            fontSize: 14,
-          }}
-        >
-          Loading…
-        </div>
-      </PageShell>
-    );
-  }
+  // Memoize computed values
+  const p1Sets = useMemo(
+    () => currentMatch?.sets.filter((s) => s.winnerId === currentMatch.player1Id).length ?? 0,
+    [currentMatch]
+  );
 
-  const sport = getSportById(currentMatch.sportId);
-  const p1Sets = currentMatch.sets.filter(
-    (s) => s.winnerId === currentMatch.player1Id,
-  ).length;
-  const p2Sets = currentMatch.sets.filter(
-    (s) => s.winnerId === currentMatch.player2Id,
-  ).length;
+  const p2Sets = useMemo(
+    () => currentMatch?.sets.filter((s) => s.winnerId === currentMatch.player2Id).length ?? 0,
+    [currentMatch]
+  );
 
-  const handleMode = async (mode: "final" | "live") => {
+  const sport = useMemo(
+    () => currentMatch ? getSportById(currentMatch.sportId) : null,
+    [currentMatch?.sportId]
+  );
+
+  const handleMode = useCallback(async (mode: "final" | "live") => {
+    if (!currentMatch) return;
     await setScoringMode(mode);
     router.push(`/match/${id}/${mode === "live" ? "live" : "final-score"}`);
-  };
+  }, [currentMatch, id, setScoringMode, router]);
 
-  const handleComplete = async () => {
+  const handleComplete = useCallback(async () => {
     if (
-      currentMatch.winnerId &&
-      currentMatch.winnerName &&
-      currentMatch.tournamentId &&
+      currentMatch?.winnerId &&
+      currentMatch?.winnerName &&
+      currentMatch?.tournamentId &&
       currentTournament
     ) {
       await completeMatch(
@@ -71,14 +63,40 @@ export default function MatchPage() {
       );
     }
     router.push(
-      currentMatch.tournamentId
+      currentMatch?.tournamentId
         ? `/tournament/${currentMatch.tournamentId}`
         : "/",
     );
-  };
+  }, [currentMatch, currentTournament, completeMatch, router]);
+
+  if (loading) {
+    return <LoadingState message="Loading match…" />;
+  }
+
+  if (error || !currentMatch || currentMatch?.id !== id) {
+    return (
+      <PageShell>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: "100vh",
+            color: "var(--ink-secondary)",
+            fontSize: 14,
+          }}
+        >
+          {error || "Match not found"}
+        </div>
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell>
+      {currentMatch.tournamentId && (
+        <Breadcrumb items={[{ label: 'Tournament', href: `/tournament/${currentMatch.tournamentId}` }]} />
+      )}
       <PageHeader
         title="Match"
         onBack={() =>
@@ -379,9 +397,8 @@ function PlayerPill({
           width: 56,
           height: 56,
           borderRadius: 999,
-          background: tag === "A" ? "var(--ink)" : "#fff",
-          color: tag === "A" ? "#fff" : "var(--ink)",
-          border: tag === "B" ? "0.5px solid var(--line)" : "none",
+          background: tag === "A" ? "var(--avatar-1)" : "var(--avatar-3)",
+          color: tag === "A" ? "var(--avatar-1-text)" : "var(--avatar-3-text)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

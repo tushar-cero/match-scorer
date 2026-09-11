@@ -9,7 +9,7 @@ export const snookerConfig: SportConfig = {
     type: "frames",
     frames: {
       defaultBestOf: 5,
-      options: [3, 5, 7, 9, 11, 17, 19, 35],
+      options: [1, 3, 5, 7, 9, 11, 17, 19, 35],
       foulMinPenalty: 4,
     },
   },

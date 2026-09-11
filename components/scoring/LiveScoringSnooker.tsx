@@ -81,7 +81,7 @@ export function LiveScoringSnooker({ match, onBack }: Props) {
       style={{
         position: "fixed",
         inset: 0,
-        background: "#fff",
+        background: "var(--surface)",
         display: "flex",
         flexDirection: "column",
       }}
@@ -90,7 +90,7 @@ export function LiveScoringSnooker({ match, onBack }: Props) {
       <div
         style={{
           position: "absolute",
-          top: 56,
+          top: 16,
           left: 0,
           right: 0,
           display: "flex",
@@ -103,37 +103,39 @@ export function LiveScoringSnooker({ match, onBack }: Props) {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 10,
-            padding: "6px 12px 6px 6px",
-            borderRadius: 999,
+            gap: 8,
+            padding: "7px 14px 7px 10px",
+            borderRadius: 20,
           }}
         >
           <button
             onClick={onBack}
             style={{
-              width: 28,
-              height: 28,
-              borderRadius: 999,
+              width: 24,
+              height: 24,
+              borderRadius: 50,
               border: "none",
-              background: "rgba(10,10,10,0.05)",
+              background: "transparent",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               cursor: "pointer",
+              color: "var(--ink-tertiary)",
             }}
           >
-            <Icon name="x" size={14} />
+            <Icon name="x" size={14} stroke={1.75} />
           </button>
           <div
             style={{
               fontFamily: "var(--font-geist-mono)",
-              fontSize: 12,
-              color: "var(--ink-3)",
+              fontSize: 11.5,
+              fontWeight: 700,
+              color: "var(--ink)",
               whiteSpace: "nowrap",
+              letterSpacing: "0.05em",
             }}
           >
-            FRAME {currentFrame?.setNumber ?? 1} · BO
-            {m.config.bestOfFrames ?? 5}
+            FRAME {currentFrame?.setNumber ?? 1} · BO{m.config.bestOfFrames ?? 5}
           </div>
         </div>
       </div>
@@ -463,7 +465,7 @@ function SnookerHalf({
             fontVariantNumeric: "tabular-nums",
             fontWeight: 600,
             letterSpacing: "-0.04em",
-            fontSize: 76,
+            fontSize: 56,
             lineHeight: 1,
           }}
         >

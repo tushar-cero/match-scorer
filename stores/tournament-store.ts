@@ -10,6 +10,8 @@ interface TournamentStore {
   currentTournament: Tournament | null;
   tournaments: Tournament[];
   tournamentMatches: Match[];
+  loading: boolean;
+  error: string | null;
   loadTournaments: () => Promise<void>;
   loadTournament: (id: string) => Promise<void>;
   createTournament: (data: {
@@ -21,23 +23,41 @@ interface TournamentStore {
   }) => Promise<Tournament>;
   deleteTournament: (id: string) => Promise<void>;
   completeMatch: (matchId: string, winnerId: string, winnerName: string) => Promise<void>;
+  clearError: () => void;
 }
 
 export const useTournamentStore = create<TournamentStore>((set, get) => ({
   currentTournament: null,
   tournaments: [],
   tournamentMatches: [],
+  loading: false,
+  error: null,
 
   loadTournaments: async () => {
-    const all = await db.tournaments.orderBy("createdAt").reverse().toArray();
-    set({ tournaments: all });
+    set({ loading: true, error: null });
+    try {
+      const all = await db.tournaments.orderBy("createdAt").reverse().toArray();
+      set({ tournaments: all, loading: false });
+    } catch (err) {
+      set({ error: 'Failed to load tournaments', loading: false });
+      console.error('Error loading tournaments:', err);
+    }
   },
 
   loadTournament: async (id) => {
-    const tournament = await db.tournaments.get(id);
-    if (!tournament) return;
-    const matches = await db.matches.where("tournamentId").equals(id).toArray();
-    set({ currentTournament: tournament, tournamentMatches: matches });
+    set({ loading: true, error: null });
+    try {
+      const tournament = await db.tournaments.get(id);
+      if (!tournament) {
+        set({ error: 'Tournament not found', loading: false });
+        return;
+      }
+      const matches = await db.matches.where("tournamentId").equals(id).toArray();
+      set({ currentTournament: tournament, tournamentMatches: matches, loading: false });
+    } catch (err) {
+      set({ error: 'Failed to load tournament', loading: false });
+      console.error('Error loading tournament:', err);
+    }
   },
 
   createTournament: async ({ name, sportId, players, matchConfig, format }) => {
@@ -87,7 +107,11 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
       winner: isFinal ? winnerName : currentTournament.winner,
       updatedAt: new Date(),
     };
-    await db.tournaments.put(updatedTournament);
-    set({ currentTournament: updatedTournament, tournamentMatches: advanced });
-  },
-}));
+     await db.tournaments.put(updatedTournament);
+     set({ currentTournament: updatedTournament, tournamentMatches: advanced });
+   },
+
+   clearError: () => {
+     set({ error: null });
+   },
+ }));

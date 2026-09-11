@@ -6,6 +6,7 @@ import { SPORTS, getSportById } from "@/config/sports";
 import { useMatchStore } from "@/stores/match-store";
 import { nanoid } from "@/lib/utils";
 import { MatchConfig } from "@/types";
+import { validatePlayerName, sanitizeInput } from "@/lib/validation";
 import {
   PageShell,
   PageHeader,
@@ -45,31 +46,52 @@ export default function NewMatchPage() {
   };
 
   const handleCreate = async () => {
-    if (!player1.trim() || !player2.trim()) {
-      setError("Both names are required");
+    setError("");
+    
+    // Validate player names
+    const p1Error = validatePlayerName(player1);
+    if (p1Error) {
+      setError(p1Error.message);
       return;
     }
-    if (player1.trim() === player2.trim()) {
-      setError("Names must be different");
+    
+    const p2Error = validatePlayerName(player2);
+    if (p2Error) {
+      setError(p2Error.message);
       return;
     }
+    
+    const p1 = sanitizeInput(player1);
+    const p2 = sanitizeInput(player2);
+    
+    if (p1 === p2) {
+      setError("Player names must be different");
+      return;
+    }
+    
     if (!sportId) return;
-    const config: MatchConfig = {
-      sportId,
-      ...(sport?.scoring.type === "sets-and-points"
-        ? { sets, pointsPerSet }
-        : { bestOfFrames }),
-    };
-    const m = await createMatch({
-      sportId,
-      player1Id: nanoid(),
-      player2Id: nanoid(),
-      player1Name: player1.trim(),
-      player2Name: player2.trim(),
-      config,
-      status: "upcoming",
-    });
-    router.push(`/match/${m.id}`);
+    
+    try {
+      const config: MatchConfig = {
+        sportId,
+        ...(sport?.scoring.type === "sets-and-points"
+          ? { sets, pointsPerSet }
+          : { bestOfFrames }),
+      };
+      const m = await createMatch({
+        sportId,
+        player1Id: nanoid(),
+        player2Id: nanoid(),
+        player1Name: p1,
+        player2Name: p2,
+        config,
+        status: "upcoming",
+      });
+      router.push(`/match/${m.id}`);
+    } catch (err) {
+      setError("Failed to create match. Please try again.");
+      console.error("Error creating match:", err);
+    }
   };
 
   return (
@@ -81,24 +103,39 @@ export default function NewMatchPage() {
 
       <div
         className="no-scrollbar"
-        style={{ padding: "8px 16px 100px", overflowY: "auto" }}
+        style={{ padding: "24px 22px 28px", overflowY: "auto", minHeight: "100%" }}
       >
         {step === 0 && (
           <>
             <div
               style={{
-                fontSize: 28,
-                fontWeight: 600,
-                letterSpacing: "-0.025em",
-                margin: "8px 0 4px",
+                width: 40,
+                height: 40,
+                borderRadius: 10,
+                background: "var(--surface-3)",
+                border: "1px solid var(--border)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 16,
+              }}
+            >
+              <Icon name="bolt" size={18} stroke={1.6} />
+            </div>
+            <div
+              style={{
+                fontSize: 23,
+                fontWeight: 700,
+                letterSpacing: "-0.01em",
+                marginBottom: 8,
               }}
             >
               Pick a sport
             </div>
             <div
               style={{
-                fontSize: 14.5,
-                color: "var(--ink-3)",
+                fontSize: 14,
+                color: "var(--ink-secondary)",
                 marginBottom: 16,
               }}
             >
@@ -106,46 +143,51 @@ export default function NewMatchPage() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {SPORTS.map((s) => (
-                <GlassCard
+                <button
                   key={s.id}
                   onClick={() => handleSportSelect(s.id)}
                   style={{
-                    padding: "18px 18px",
+                    padding: "15px 14px",
                     display: "flex",
                     alignItems: "center",
-                    gap: 16,
-                    height: 100,
+                    gap: 12,
+                    borderRadius: 12,
+                    border: "1px solid var(--border)",
+                    background: "var(--surface-2)",
+                    cursor: "pointer",
+                    width: "100%",
+                    textAlign: "left",
+                    color: "inherit",
                   }}
                 >
                   <div
                     style={{
-                      width: 64,
-                      height: 64,
-                      borderRadius: 16,
-                      background: "#fafaf6",
+                      width: 36,
+                      height: 36,
+                      borderRadius: 9,
+                      background: "var(--surface-3)",
+                      border: "1px solid var(--border)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      border: "0.5px solid var(--line-2)",
+                      flexShrink: 0,
                     }}
                   >
-                    <SportGlyph sport={s.id} size={44} />
+                    <SportGlyph sport={s.id} size={18} />
                   </div>
                   <div style={{ flex: 1 }}>
                     <div
                       style={{
-                        fontSize: 19,
+                        fontSize: 15,
                         fontWeight: 600,
-                        letterSpacing: "-0.02em",
                       }}
                     >
                       {s.name}
                     </div>
                     <div
                       style={{
-                        fontSize: 13.5,
-                        color: "var(--ink-3)",
-                        marginTop: 4,
+                        fontSize: 12.5,
+                        color: "var(--ink-secondary)",
                       }}
                     >
                       {s.scoring.type === "sets-and-points"
@@ -153,8 +195,8 @@ export default function NewMatchPage() {
                         : "Frames"}
                     </div>
                   </div>
-                  <Icon name="chevronRight" size={18} color="var(--ink-4)" />
-                </GlassCard>
+                  <Icon name="chevronRight" size={18} color="var(--ink-tertiary)" />
+                </button>
               ))}
             </div>
           </>
@@ -255,8 +297,8 @@ export default function NewMatchPage() {
                     width: 32,
                     height: 32,
                     borderRadius: 999,
-                    background: "var(--ink)",
-                    color: "#fff",
+                    background: "var(--avatar-1)",
+                    color: "var(--avatar-1-text)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -295,9 +337,8 @@ export default function NewMatchPage() {
                     width: 32,
                     height: 32,
                     borderRadius: 999,
-                    background: "#fafaf6",
-                    color: "var(--ink-2)",
-                    border: "0.5px solid var(--line)",
+                    background: "var(--avatar-3)",
+                    color: "var(--avatar-3-text)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",

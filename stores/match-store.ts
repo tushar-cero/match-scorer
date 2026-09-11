@@ -9,6 +9,8 @@ import { nanoid } from "@/lib/utils";
 interface MatchStore {
   currentMatch: Match | null;
   recentMatches: Match[];
+  loading: boolean;
+  error: string | null;
   loadMatch: (id: string) => Promise<void>;
   loadRecentMatches: () => Promise<void>;
   createMatch: (
@@ -30,20 +32,39 @@ interface MatchStore {
   setScoringMode: (mode: "final" | "live") => Promise<void>;
   updateFinalScore: (sets: Match["sets"]) => Promise<void>;
   endSnookerFrame: () => Promise<void>;
+  clearError: () => void;
 }
 
 export const useMatchStore = create<MatchStore>((set, get) => ({
   currentMatch: null,
   recentMatches: [],
+  loading: false,
+  error: null,
 
   loadMatch: async (id) => {
-    const match = await db.matches.get(id);
-    if (match) set({ currentMatch: match });
+    set({ loading: true, error: null });
+    try {
+      const match = await db.matches.get(id);
+      if (match) {
+        set({ currentMatch: match, loading: false });
+      } else {
+        set({ error: 'Match not found', loading: false });
+      }
+    } catch (err) {
+      set({ error: 'Failed to load match', loading: false });
+      console.error('Error loading match:', err);
+    }
   },
 
   loadRecentMatches: async () => {
-    const all = await db.matches.orderBy("createdAt").reverse().toArray();
-    set({ recentMatches: all.filter((m) => !m.tournamentId).slice(0, 20) });
+    set({ loading: true, error: null });
+    try {
+      const all = await db.matches.orderBy("createdAt").reverse().toArray();
+      set({ recentMatches: all.filter((m) => !m.tournamentId).slice(0, 20), loading: false });
+    } catch (err) {
+      set({ error: 'Failed to load matches', loading: false });
+      console.error('Error loading recent matches:', err);
+    }
   },
 
   createMatch: async (matchData) => {
@@ -164,5 +185,9 @@ export const useMatchStore = create<MatchStore>((set, get) => ({
     );
     await db.matches.put(updated);
     set({ currentMatch: updated });
+  },
+
+  clearError: () => {
+    set({ error: null });
   },
 }));

@@ -120,116 +120,108 @@ export default function NewTournamentPage() {
   return (
     <PageShell>
       <PageHeader
-        title={`Step ${step + 1} · ${STEPS[step]}`}
+        title={`New tournament`}
         onBack={goBack}
-        action={
-          <div
-            style={{
-              fontFamily: "var(--font-geist-mono)",
-              fontSize: 13,
-              color: "var(--ink-3)",
-              fontVariantNumeric: "tabular-nums",
-            }}
-          >
-            {step + 1}/{STEPS.length}
-          </div>
-        }
       />
       <StepBar total={STEPS.length} current={step} />
 
       <div
         className="no-scrollbar"
         style={{
-          padding: "4px 16px 100px",
+          padding: "24px 22px 28px",
           overflowY: "auto",
-          height: "calc(100vh - 140px)",
+          minHeight: "calc(100vh - 200px)",
         }}
       >
-        {/* Step 0: Sport */}
+        {/* Step 0: Sport Selection */}
         {step === 0 && (
           <>
             <div
               style={{
-                fontSize: 28,
-                fontWeight: 600,
-                letterSpacing: "-0.025em",
-                margin: "8px 0 4px",
-              }}
-            >
-              Pick a sport
-            </div>
-            <div
-              style={{
-                fontSize: 14.5,
-                color: "var(--ink-3)",
+                width: 40,
+                height: 40,
+                borderRadius: 10,
+                background: "var(--surface-2)",
+                border: "1px solid var(--border)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 marginBottom: 16,
               }}
             >
-              You can change defaults later.
+              <Icon name="trophy" size={21} stroke={1.6} />
+            </div>
+            <div
+              style={{
+                fontSize: 23,
+                fontWeight: 700,
+                letterSpacing: "-0.01em",
+                marginBottom: 8,
+              }}
+            >
+              Set up your bracket
+            </div>
+            <div
+              style={{
+                fontSize: 14,
+                color: "var(--ink-secondary)",
+                marginBottom: 16,
+              }}
+            >
+              Name it, pick a sport, add players.
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {SPORTS.map((s) => (
-                <GlassCard
+                <button
                   key={s.id}
                   onClick={() => handleSportSelect(s.id)}
                   style={{
-                    padding: 16,
+                    padding: 14,
                     display: "flex",
                     alignItems: "center",
-                    gap: 14,
-                    border:
-                      sportId === s.id ? "1.5px solid var(--ink)" : undefined,
+                    gap: 12,
+                    borderRadius: 14,
+                    border: sportId === s.id ? "1px solid var(--accent-dark)" : "1px solid var(--border)",
+                    background: "var(--surface-2)",
+                    cursor: "pointer",
+                    width: "100%",
+                    textAlign: "left",
+                    color: "inherit",
                   }}
                 >
                   <div
                     style={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: 14,
-                      background: "#fafaf6",
+                      width: 36,
+                      height: 36,
+                      borderRadius: 9,
+                      background: "var(--surface-3)",
+                      border: "1px solid var(--border)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
+                      flexShrink: 0,
                     }}
                   >
-                    <SportGlyph sport={s.id} size={40} />
+                    <SportGlyph sport={s.id} size={18} />
                   </div>
                   <div style={{ flex: 1 }}>
                     <div
                       style={{
-                        fontSize: 17,
+                        fontSize: 15,
                         fontWeight: 600,
-                        letterSpacing: "-0.01em",
                       }}
                     >
                       {s.name}
                     </div>
-                    <div style={{ fontSize: 13, color: "var(--ink-3)" }}>
+                    <div style={{ fontSize: 12.5, color: "var(--ink-secondary)" }}>
                       {s.scoring.type === "sets-and-points"
                         ? "Sets & Points"
                         : "Frames"}
                     </div>
                   </div>
-                  <div
-                    style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: 999,
-                      border:
-                        sportId === s.id ? "none" : "1.5px solid var(--line)",
-                      background:
-                        sportId === s.id ? "var(--ink)" : "transparent",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {sportId === s.id && (
-                      <Icon name="check" size={13} color="#fff" stroke={2.4} />
-                    )}
-                  </div>
-                </GlassCard>
-              ))}
+                  <Icon name="chevronRight" size={16} color="var(--ink-tertiary)" />
+                </button>
+               ))}
             </div>
           </>
         )}
@@ -239,21 +231,21 @@ export default function NewTournamentPage() {
           <>
             <div
               style={{
-                fontSize: 28,
-                fontWeight: 600,
-                letterSpacing: "-0.025em",
-                margin: "8px 0 16px",
+                fontSize: 23,
+                fontWeight: 700,
+                letterSpacing: "-0.01em",
+                marginBottom: 16,
               }}
             >
               Tournament details
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <div>
-                <Label>Name</Label>
+                <Label>Tournament name</Label>
                 <DesignInput
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Friday Night Cup"
+                  placeholder="e.g. Fall Snooker Open"
                   autoFocus
                 />
               </div>
@@ -265,45 +257,9 @@ export default function NewTournamentPage() {
                   onChange={setPlayerCount}
                 />
                 <div
-                  style={{ fontSize: 12, color: "var(--ink-4)", marginTop: 8 }}
+                  style={{ fontSize: 12.5, color: "var(--ink-secondary)", marginTop: 8 }}
                 >
-                  {playerCount} players · single elimination bracket
-                </div>
-              </div>
-              <div>
-                <Label>Format</Label>
-                <div
-                  className="surface-card"
-                  style={{ borderRadius: 14, padding: "14px 16px" }}
-                >
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 10 }}
-                  >
-                    <div
-                      style={{
-                        width: 18,
-                        height: 18,
-                        borderRadius: 999,
-                        border: "none",
-                        background: "var(--ink)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <span
-                        style={{
-                          width: 7,
-                          height: 7,
-                          borderRadius: 999,
-                          background: "#fff",
-                        }}
-                      />
-                    </div>
-                    <div style={{ flex: 1, fontSize: 15 }}>
-                      Single elimination
-                    </div>
-                  </div>
+                  {playerCount} players · single elimination
                 </div>
               </div>
               {error && (

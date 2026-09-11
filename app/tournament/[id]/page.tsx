@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTournamentStore } from "@/stores/tournament-store";
@@ -22,7 +22,14 @@ export default function TournamentPage() {
 
   useEffect(() => {
     loadTournament(id);
-  }, [id]);
+  }, [id, loadTournament]);
+
+  // Optimize N+1 query pattern: create a Map for O(1) lookups
+  const matchesById = useMemo(() => {
+    const map = new Map<string, Match>();
+    tournamentMatches.forEach((m) => map.set(m.id, m));
+    return map;
+  }, [tournamentMatches]);
 
   if (currentTournament?.id !== id) {
     return (
@@ -69,87 +76,30 @@ export default function TournamentPage() {
       <PageHeader
         title={currentTournament.name}
         onBack={() => router.back()}
-        action={
-          <Chip style={{ height: 24, fontSize: 11 }}>
-            {currentTournament.status}
-          </Chip>
-        }
       />
 
-      {/* Progress bar */}
-      <div style={{ padding: "0 16px 8px" }}>
+      {/* Content */}
+      <div className="no-scrollbar" style={{ padding: "24px 22px 28px", overflowY: "auto" }}>
+        {/* Info bar */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 8,
-            marginBottom: 8,
-          }}
-        >
-          <Chip>
-            <SportGlyph sport={currentTournament.sportId} size={14} />{" "}
-            {sport?.name}
-          </Chip>
-          <Chip>Single elim</Chip>
-          {currentTournament.status === "in-progress" && (
-            <Chip
-              style={{
-                background: "rgba(47,125,50,0.10)",
-                color: "#1f5c22",
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-              }}
-            >
-              <span
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: 999,
-                  background: "#2f7d32",
-                }}
-              />{" "}
-              Live
-            </Chip>
-          )}
-        </div>
-        <div
-          style={{
-            display: "flex",
             justifyContent: "space-between",
-            marginBottom: 6,
+            marginBottom: 16,
           }}
         >
-          <div style={{ fontSize: 13, color: "var(--ink-3)" }}>
-            {completed} of {total} matches complete
-          </div>
-          <div
-            style={{
-              fontFamily: "var(--font-geist-mono)",
-              fontSize: 12,
-              color: "var(--ink-4)",
-            }}
-          >
-            {total > 0 ? Math.round((completed / total) * 100) : 0}%
+          <div>
+            <Chip style={{ height: 24, fontSize: 11, fontWeight: 600, padding: "2px 7px", borderRadius: 5, background: "var(--sn)", color: "var(--sn-text)" }}>
+              {currentTournament.sportId === "tt" ? "Table Tennis" : "Snooker"}
+            </Chip>
+            <div style={{ fontSize: 13, color: "var(--ink-secondary)", marginTop: 4 }}>
+              {currentTournament.players.length} players · single elimination
+            </div>
           </div>
         </div>
-        <div
-          style={{
-            height: 4,
-            borderRadius: 999,
-            background: "rgba(10,10,10,0.06)",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              width: `${total > 0 ? (completed / total) * 100 : 0}%`,
-              height: "100%",
-              background: "var(--ink)",
-              transition: "width 0.4s",
-            }}
-          />
-        </div>
+
+        {/* Bracket rounds */}
       </div>
 
       {/* Winner banner */}
@@ -190,39 +140,29 @@ export default function TournamentPage() {
       {/* Bracket */}
       <div
         className="no-scrollbar"
-        style={{ padding: "0 16px 56px", overflowY: "auto" }}
+        style={{ padding: "24px 22px 28px", overflowY: "auto", minHeight: "100%" }}
       >
-        {currentTournament.bracket.map((round) => {
-          const roundMatches = round.matches
-            .map((mid) => tournamentMatches.find((m) => m.id === mid))
-            .filter(Boolean) as Match[];
-          const label = roundLabels[round.round] ?? `Round ${round.round}`;
+       {currentTournament.bracket.map((round) => {
+           const roundMatches = round.matches
+             .map((mid) => matchesById.get(mid))
+             .filter(Boolean) as Match[];
+           const label = roundLabels[round.round] ?? `Round ${round.round}`;
           return (
             <div key={round.round} style={{ marginBottom: 22 }}>
               <div
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  margin: "4px 4px 10px",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "var(--ink-secondary)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.07em",
+                  marginBottom: 9,
+                  paddingLeft: 2,
                 }}
               >
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color: "var(--ink-3)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
-                  }}
-                >
-                  {label}
-                </div>
-                <div
-                  style={{ flex: 1, height: 0.5, background: "var(--line)" }}
-                />
+                {label}
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
                 {roundMatches.map((m) => {
                   if (m.player1Name === "BYE" || m.player2Name === "BYE")
                     return null;
@@ -255,9 +195,9 @@ function BracketMatchCard({ match }: Readonly<{ match: Match }>) {
     <div
       className="glass"
       style={{
-        borderRadius: 18,
+        borderRadius: 12,
         overflow: "hidden",
-        border: isLive ? "1.5px solid var(--ink)" : undefined,
+        border: isLive ? "1px solid var(--accent-dark)" : "1px solid var(--border)",
         position: "relative",
       }}
     >
@@ -267,7 +207,7 @@ function BracketMatchCard({ match }: Readonly<{ match: Match }>) {
         winner={match.winnerId === match.player1Id}
         done={match.status === "completed"}
       />
-      <div style={{ height: "0.5px", background: "var(--line-2)" }} />
+      <div style={{ height: "1px", background: "var(--border)" }} />
       <BracketRow
         name={match.player2Name}
         score={match.sets.filter((s) => s.winnerId === match.player2Id).length}
@@ -285,7 +225,7 @@ function BracketMatchCard({ match }: Readonly<{ match: Match }>) {
             gap: 5,
             padding: "3px 8px",
             borderRadius: 999,
-            background: "var(--ink)",
+            background: "var(--accent-dark)",
             color: "#fff",
             fontSize: 10.5,
             fontWeight: 600,

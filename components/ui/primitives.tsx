@@ -167,16 +167,17 @@ export function PageHeader({
   large?: boolean;
 }>) {
   return (
-    <div style={{ padding: large ? "60px 24px 8px" : "60px 16px 12px" }}>
+    <div style={{ padding: large ? "48px 22px 0" : "16px 22px 12px" }}>
       <div
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           minHeight: 36,
+          marginBottom: large ? 24 : 0,
         }}
       >
-        <div style={{ width: 40 }}>
+        <div style={{ width: 36 }}>
           {onBack && (
             <button
               onClick={onBack}
@@ -184,44 +185,67 @@ export function PageHeader({
               style={{
                 width: 36,
                 height: 36,
-                borderRadius: 12,
-                border: "none",
-                background: "rgba(10,10,10,0.05)",
+                borderRadius: 9,
+                border: "1px solid var(--border)",
+                background: "var(--surface-2)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 cursor: "pointer",
+                color: "var(--ink)",
               }}
             >
-              <Icon name="arrowLeft" size={18} />
+              <Icon name="arrowLeft" size={17} stroke={1.75} />
             </button>
           )}
         </div>
         {!large && (
           <div
-            style={{ fontSize: 16, fontWeight: 600, letterSpacing: "-0.01em" }}
+            style={{ fontSize: 14.5, fontWeight: 600, letterSpacing: "-0.01em" }}
           >
             {title}
           </div>
         )}
-        <div style={{ width: 40, display: "flex", justifyContent: "flex-end" }}>
+        <div style={{ width: 36, display: "flex", justifyContent: "flex-end" }}>
           {action}
         </div>
       </div>
       {large && (
-        <div style={{ marginTop: 16 }}>
+        <div>
           <div
             style={{
-              fontSize: 32,
-              fontWeight: 600,
-              letterSpacing: "-0.025em",
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              background: "var(--surface-3)",
+              border: "1px solid var(--border)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 16,
+            }}
+          >
+            <Icon name="trophy" size={21} stroke={1.6} />
+          </div>
+          <div
+            style={{
+              fontSize: 29,
+              fontWeight: 700,
+              letterSpacing: "-0.01em",
               lineHeight: 1.05,
+              color: "var(--ink)",
             }}
           >
             {title}
           </div>
           {subtitle && (
-            <div style={{ marginTop: 6, fontSize: 15, color: "var(--ink-3)" }}>
+            <div
+              style={{
+                marginTop: 8,
+                fontSize: 14.5,
+                color: "var(--ink-secondary)",
+              }}
+            >
               {subtitle}
             </div>
           )}
@@ -245,16 +269,16 @@ export function SectionHeader({
         display: "flex",
         justifyContent: "space-between",
         alignItems: "baseline",
-        margin: "24px 4px 10px",
+        margin: "16px 2px 8px",
       }}
     >
       <div
         style={{
-          fontSize: 13,
-          fontWeight: 500,
-          color: "var(--ink-3)",
+          fontSize: 11,
+          fontWeight: 600,
+          color: "var(--ink-secondary)",
           textTransform: "uppercase",
-          letterSpacing: "0.06em",
+          letterSpacing: "0.07em",
         }}
       >
         {title}
@@ -262,10 +286,12 @@ export function SectionHeader({
       {trailing != null && (
         <div
           style={{
-            fontFamily: "var(--font-geist-mono)",
-            fontSize: 12,
-            color: "var(--ink-4)",
-            fontVariantNumeric: "tabular-nums",
+            fontSize: 11,
+            fontWeight: 600,
+            padding: "1px 6px",
+            borderRadius: 5,
+            background: "var(--surface-2)",
+            color: "var(--ink)",
           }}
         >
           {trailing}
@@ -284,7 +310,7 @@ export function StepBar({
   current: number;
 }>) {
   return (
-    <div style={{ display: "flex", gap: 4, padding: "0 16px 8px" }}>
+    <div style={{ display: "flex", gap: 4, padding: "8px 16px" }}>
       {Array.from({ length: total }, (_, i) => i).map((i) => (
         <div
           key={`step-${i}`}
@@ -292,7 +318,7 @@ export function StepBar({
             flex: 1,
             height: 3,
             borderRadius: 2,
-            background: i <= current ? "var(--ink)" : "rgba(10,10,10,0.08)",
+            background: i <= current ? "var(--ink)" : "var(--border)",
             transition: "background 0.2s",
           }}
         />
@@ -319,11 +345,12 @@ export function GlassCard({
       className={`glass ${className ?? ""}`}
       style={{
         borderRadius: 22,
+        background: "var(--surface)",
+        border: "1px solid var(--border)",
         ...style,
         ...(onClick
           ? {
               cursor: "pointer",
-              border: "none",
               textAlign: "left" as const,
               display: "block",
               width: "100%",
@@ -349,11 +376,11 @@ export function SurfaceRow({
     <div
       className="surface-card"
       style={{
-        borderRadius: 14,
+        borderRadius: 12,
         display: "flex",
         alignItems: "center",
         gap: 12,
-        padding: "14px 16px",
+        padding: "13px 14px",
         ...style,
       }}
     >
@@ -388,16 +415,16 @@ export function PrimaryBtn({
         alignItems: "center",
         justifyContent: "center",
         gap: 8,
-        height: large ? 60 : 52,
+        height: large ? 60 : 48,
         padding: "0 22px",
-        borderRadius: large ? 18 : 16,
+        borderRadius: large ? 18 : 12,
         border: "none",
         cursor: disabled ? "not-allowed" : "pointer",
         fontFamily: "inherit",
-        fontWeight: 500,
-        fontSize: large ? 17 : 16,
+        fontWeight: 600,
+        fontSize: 15,
         letterSpacing: "-0.01em",
-        background: disabled ? "rgba(10,10,10,0.2)" : "var(--ink)",
+        background: disabled ? "rgba(10,10,10,0.2)" : "var(--accent-dark)",
         color: "#fff",
         opacity: disabled ? 0.5 : 1,
         transition: "transform 0.12s, opacity 0.12s",
@@ -423,13 +450,13 @@ export function Chip({
         display: "inline-flex",
         alignItems: "center",
         gap: 6,
-        height: 28,
-        padding: "0 10px",
-        borderRadius: 999,
-        fontSize: 12,
-        fontWeight: 500,
-        background: "rgba(10,10,10,0.05)",
-        color: "var(--ink-2)",
+        height: 24,
+        padding: "2px 7px",
+        borderRadius: 5,
+        fontSize: 11,
+        fontWeight: 600,
+        background: "var(--sn)",
+        color: "var(--sn-text)",
         ...style,
       }}
     >
@@ -462,14 +489,14 @@ export function DesignInput({
       {...props}
       style={{
         width: "100%",
-        height: 52,
-        padding: "0 16px",
-        borderRadius: 14,
-        border: "1px solid var(--line)",
-        background: "var(--surface)",
+        height: 48,
+        padding: "12px 14px",
+        borderRadius: 10,
+        border: "1px solid var(--border)",
+        background: "var(--surface-2)",
         color: "var(--ink)",
         fontFamily: "inherit",
-        fontSize: 16,
+        fontSize: 14.5,
         letterSpacing: "-0.01em",
         outline: "none",
         transition: "border-color 0.12s, box-shadow 0.12s",
@@ -480,7 +507,7 @@ export function DesignInput({
         e.currentTarget.style.boxShadow = "0 0 0 4px rgba(10,10,10,0.04)";
       }}
       onBlur={(e) => {
-        e.currentTarget.style.borderColor = "var(--line)";
+        e.currentTarget.style.borderColor = "var(--border)";
         e.currentTarget.style.boxShadow = "none";
       }}
     />
@@ -492,11 +519,12 @@ export function Label({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <div
       style={{
-        fontSize: 13,
-        color: "var(--ink-3)",
-        fontWeight: 500,
-        letterSpacing: "0.01em",
-        marginBottom: 8,
+        fontSize: 11,
+        color: "var(--ink-secondary)",
+        fontWeight: 600,
+        letterSpacing: "0.06em",
+        marginBottom: 7,
+        textTransform: "uppercase",
       }}
     >
       {children}
@@ -515,22 +543,22 @@ export function NumberPills({
   onChange: (v: number) => void;
 }>) {
   return (
-    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
       {options.map((o) => (
         <button
           key={o}
           onClick={() => onChange(o)}
           style={{
-            height: 44,
-            minWidth: 52,
-            padding: "0 14px",
-            borderRadius: 12,
-            border: `0.5px solid ${o === value ? "var(--ink)" : "var(--line)"}`,
-            background: o === value ? "var(--ink)" : "var(--surface)",
-            color: o === value ? "#fff" : "var(--ink-2)",
-            fontFamily: "var(--font-geist-mono)",
-            fontSize: 15,
-            fontWeight: 500,
+            height: 38,
+            minWidth: 44,
+            padding: "0 12px",
+            borderRadius: 9,
+            border: `1px solid ${o === value ? "transparent" : "var(--border)"}`,
+            background: o === value ? "var(--accent-dark)" : "var(--surface-2)",
+            color: o === value ? "#fff" : "var(--ink)",
+            fontFamily: "inherit",
+            fontSize: 14.5,
+            fontWeight: o === value ? 700 : 600,
             cursor: "pointer",
             fontVariantNumeric: "tabular-nums",
             transition: "all 0.12s",
